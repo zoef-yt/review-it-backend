@@ -1,6 +1,18 @@
-import { IsString } from 'class-validator';
+import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class CreateGameDto {
   @IsString()
-  name: string;
+  title: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsString()
+  @IsOptional()
+  genre?: string;
+
+  @IsDateString()
+  @IsOptional()
+  releaseDate?: string;
 }
