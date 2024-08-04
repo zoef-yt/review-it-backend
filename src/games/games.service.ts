@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 
 import { CreateGameDto } from './dto/create-game.dto';
 import { Game } from './schema/games.schema';
@@ -19,6 +19,9 @@ export class GamesService {
   }
 
   async findOne(id: string): Promise<Game> {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`Invalid ID format: ${id}`);
+    }
     const game = await this.gameModel.findById(id).exec();
     if (!game) {
       throw new NotFoundException(`Game with id ${id} not found`);
