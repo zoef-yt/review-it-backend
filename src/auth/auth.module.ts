@@ -13,12 +13,13 @@ import { UsersModule } from 'src/users/users.module';
         return {
           global: true,
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '1d' },
+          signOptions: { expiresIn: '30d' },
         };
       },
     }),
   ],
   providers: [AuthService],
   controllers: [AuthController],
+  exports: [JwtModule],
 })
 export class AuthModule {}

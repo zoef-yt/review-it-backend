@@ -6,11 +6,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UsersService } from 'src/users/users.service';
 
-type LoginResult = {
+interface AuthResult {
   accessToken: string;
   email: string;
   id: string;
-};
+}
 
 @Injectable()
 export class AuthService {
@@ -19,12 +19,14 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto): Promise<AuthResult> {
     const user = await this.userService.create({ email: createUserDto.email, password: createUserDto.password });
-    return { email: user.email, sub: user._id.toString() };
+    const payload = { email: user.email, sub: user._id.toString() };
+    const accessToken = await this.jwtService.signAsync(payload);
+    return { accessToken: accessToken, email: user.email, id: user._id.toString() };
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<LoginResult> {
+  async login(loginUserDto: LoginUserDto): Promise<AuthResult> {
     const user = await this.validateUser(loginUserDto.email, loginUserDto.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

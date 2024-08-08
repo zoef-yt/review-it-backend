@@ -9,5 +9,6 @@ import { Game, GameSchema } from './schema/games.schema';
   imports: [MongooseModule.forFeature([{ name: Game.name, schema: GameSchema }])],
   controllers: [GamesController],
   providers: [GamesService],
+  exports: [MongooseModule],
 })
 export class GamesModule {}

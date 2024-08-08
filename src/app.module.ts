@@ -6,6 +6,7 @@ import * as dotenv from 'dotenv';
 import { ApiGamesModule } from './api/games/games.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ dotenv.config();
     ApiGamesModule,
     AuthModule,
     UsersModule,
+    ReviewsModule,
   ],
   controllers: [],
   providers: [],

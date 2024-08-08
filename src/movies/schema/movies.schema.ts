@@ -1,25 +1,8 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+export type MovieDocument = Movie & Document;
 
 @Schema()
-export class Movie extends Document {
-  @Prop({ required: true })
-  title: string;
-
-  @Prop()
-  description: string;
-
-  @Prop()
-  genre: string;
-
-  @Prop()
-  releaseDate: Date;
-
-  @Prop()
-  rating: number;
-
-  @Prop()
-  director: string;
-}
+export class Movie extends Document {}
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);

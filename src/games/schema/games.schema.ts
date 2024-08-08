@@ -1,19 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
+
+export type GameDocument = Game & Document;
 
 @Schema()
 export class Game extends Document {
-  @Prop({ required: true })
-  title: string;
-
   @Prop()
   description: string;
 
-  @Prop()
-  genre: string;
-
-  @Prop()
-  releaseDate: Date;
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Review' }] })
+  reviews: Types.ObjectId[];
 }
 
 export const GameSchema = SchemaFactory.createForClass(Game);
