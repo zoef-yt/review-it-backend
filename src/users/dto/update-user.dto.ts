@@ -87,6 +87,9 @@ class GamesDTO {
 }
 
 export class UpdateUserDTO {
+  @IsOptional()
+  lastLogin?: Date;
+
   @IsString()
   @IsOptional()
   readonly name?: string;

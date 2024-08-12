@@ -6,7 +6,7 @@ import * as dotenv from 'dotenv';
 import { ApiGamesModule } from './api/games/games.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ReviewsModule } from './reviews/reviews.module';
+import { ReviewsModule } from './games/reviews/reviews.module';
 
 dotenv.config();
 

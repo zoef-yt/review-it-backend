@@ -7,7 +7,7 @@ interface Game {
   gameSlug?: string;
 }
 
-interface Review {
+interface GameReview {
   _id: Types.ObjectId;
   rating: number;
   comment?: string;
@@ -28,9 +28,10 @@ interface UserGames {
 
 export interface UserDTO {
   _id: Types.ObjectId;
+  lastLogin: Date;
   email: string;
   createdAt: Date;
   name?: string;
   games?: UserGames | undefined;
-  reviews: Review[];
+  reviews: GameReview[];
 }

@@ -69,7 +69,7 @@ export class UsersService {
     }
     await user.populate({
       path: 'reviews',
-      model: 'Review',
+      model: 'GameReview',
       populate: {
         path: 'game',
         model: 'Game',
@@ -78,6 +78,7 @@ export class UsersService {
     await user.save();
     return {
       _id: user._id as Types.ObjectId,
+      lastLogin: user.lastLogin,
       email: user.email,
       createdAt: user.createdAt,
       name: user.name,

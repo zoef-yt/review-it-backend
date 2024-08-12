@@ -53,6 +53,9 @@ export class User {
   @Prop({ required: true, unique: true })
   email: string;
 
+  @Prop({ default: Date.now })
+  lastLogin: Date;
+
   @Prop({ required: true })
   password: string;
 
@@ -65,7 +68,7 @@ export class User {
   @Prop({ type: UserGamesSchema, default: () => ({}) })
   games?: UserGames;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Review' }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'GameReview' }] })
   reviews: Types.ObjectId[];
 }
 

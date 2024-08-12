@@ -8,11 +8,13 @@ export class GamesController {
 
   @Get()
   async fetchGames(
-    @Query('page_size') page_size: number,
-    @Query('page') page: number,
-    @Query('search') search: string,
+    @Query('page_size') page_size?: number,
+    @Query('page') page?: number,
+    @Query('search') search?: string,
   ): Promise<FetchGamesResponseDto> {
-    return this.gamesService.fetchGames(page_size, page, search);
+    const finalPageSize = isNaN(page_size) || page_size <= 0 ? 15 : page_size;
+    const finalPage = isNaN(page) || page <= 0 ? 1 : page;
+    return this.gamesService.fetchGames(finalPageSize, finalPage, search);
   }
 
   @Get(':slug')

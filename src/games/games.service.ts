@@ -8,10 +8,6 @@ import { Game } from './schema/games.schema';
 @Injectable()
 export class GamesService {
   constructor(@InjectModel(Game.name) private gameModel: Model<Game>) {}
-  async findAll(): Promise<{ data: Game[]; count: number }> {
-    const games = await this.gameModel.find().exec();
-    return { count: games.length, data: games };
-  }
 
   async getGamesOfTheYear(): Promise<{ data: Game[]; count: number }> {
     const games = await this.gameModel.find().exec();
@@ -29,7 +25,7 @@ export class GamesService {
     return game;
   }
 
-  async create(createGameDto: CreateGameDto): Promise<Game> {
+  async createGame(createGameDto: CreateGameDto): Promise<Game> {
     const createdGame = new this.gameModel(createGameDto);
     return createdGame.save();
   }
