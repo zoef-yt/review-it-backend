@@ -35,4 +35,9 @@ export class AuthController {
     const id = req.user;
     return this.usersService.getUserById(id);
   }
+
+  // @Post('forget-password')
+  // async forgetPassword(@Body() body: { email: string }) {
+  //   return this.authService.forgetPassword(body.email);
+  // }
 }

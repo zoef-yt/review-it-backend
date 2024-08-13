@@ -33,8 +33,8 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto): Promise<AuthResult> {
     const user = await this.validateUser(loginUserDto.email, loginUserDto.password);
-    await this.userService.updateUser(user._id, { lastLogin: new Date() });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user._id) throw new UnauthorizedException('Invalid credentials');
+    await this.userService.updateUser(user?._id, { lastLogin: new Date() });
     const payload = { email: user.email, sub: user._id };
     const accessToken = await this.jwtService.signAsync(payload);
     return { accessToken: accessToken, email: user.email, id: user._id };

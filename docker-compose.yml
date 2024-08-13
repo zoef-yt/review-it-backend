@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - '27019:27017'
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs-backend
+    ports:
+      - '3003:3003'
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI_DEV: mongodb://root:example@mongodb:27017/nest?authSource=admin
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+volumes:
+  mongo-data:
