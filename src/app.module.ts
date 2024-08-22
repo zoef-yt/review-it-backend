@@ -3,25 +3,25 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 
-import { ApiGamesModule } from './api/games/games.module';
 import { AuthModule } from './auth/auth.module';
+import { ApiGamesModule } from './api/games/games.module';
 import { UsersModule } from './users/users.module';
-import { ReviewsModule } from './games/reviews/reviews.module';
+import { MailModule } from './mail/mail.module';
+import { GamesModule } from './games/games.module';
+import { GamesReviewModule } from './games-review/games-review.module';
 
 dotenv.config();
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    MongooseModule.forRoot(
-      process.env.ENVIRONMENT === 'production' ? process.env.MONGO_URI : process.env.MONGO_URI_DEV,
-    ),
-    ApiGamesModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRoot(process.env.ENVIRONMENT === 'prod' ? process.env.MONGO_URI : process.env.MONGO_URI_DEV),
     AuthModule,
+    ApiGamesModule,
     UsersModule,
-    ReviewsModule,
+    MailModule,
+    GamesModule,
+    GamesReviewModule,
   ],
   controllers: [],
   providers: [],

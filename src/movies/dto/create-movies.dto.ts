@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 
 export class CreateMovieDto {
@@ -18,6 +19,7 @@ export class CreateMovieDto {
 
   @IsString()
   @IsOptional()
+  @Type(() => Number)
   rating: number;
 
   @IsString()

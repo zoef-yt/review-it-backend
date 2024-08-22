@@ -1,22 +1,34 @@
-import { IsString, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsArray, ValidateNested } from 'class-validator';
+
+class GenreDto {
+  @IsString()
+  id: string;
+
+  @IsString()
+  name: string;
+}
 
 export class CreateGameDto {
   @IsString()
   gameID: string;
 
   @IsString()
-  @IsOptional()
-  gameName?: string;
+  gameName: string;
 
   @IsString()
-  @IsOptional()
-  gameImage?: string;
+  gameImage: string;
 
   @IsString()
-  @IsOptional()
-  gameSlug?: string;
+  gameSlug: string;
 
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @IsOptional()
+  @Type(() => GenreDto)
+  genre?: GenreDto[];
 }

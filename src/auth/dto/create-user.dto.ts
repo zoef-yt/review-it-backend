@@ -1,7 +1,8 @@
 import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
+import { ValidateUsernameDTO } from 'src/users/dto/validate-username.dto';
 
-export class CreateUserDto {
-  @IsEmail()
+export class CreateUserDto extends ValidateUsernameDTO {
+  @IsEmail({}, { message: 'Invalid email' })
   email: string;
 
   @IsString()

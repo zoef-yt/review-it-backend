@@ -9,11 +9,6 @@ import { Game } from './schema/games.schema';
 export class GamesService {
   constructor(@InjectModel(Game.name) private gameModel: Model<Game>) {}
 
-  async getGamesOfTheYear(): Promise<{ data: Game[]; count: number }> {
-    const games = await this.gameModel.find().exec();
-    return { count: games.length, data: games };
-  }
-
   async findOne(id: string): Promise<Game> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException(`Invalid ID format: ${id}`);
@@ -25,8 +20,25 @@ export class GamesService {
     return game;
   }
 
+  async findOneByGameID(gameID: string): Promise<Game> {
+    const game = await this.gameModel.findOne({ gameID: gameID }).exec();
+    if (!game) {
+      throw new NotFoundException(`Game with gameID ${gameID} not found`);
+    }
+    return game;
+  }
+
+  async findOneByGameSlug(gameSlug: string): Promise<Game> {
+    const game = await this.gameModel.findOne({ gameSlug: gameSlug }).exec();
+    return game;
+  }
+
   async createGame(createGameDto: CreateGameDto): Promise<Game> {
     const createdGame = new this.gameModel(createGameDto);
     return createdGame.save();
+  }
+
+  async addReviewToGame(gameID: string, reviewID: string): Promise<void> {
+    await this.gameModel.findByIdAndUpdate(gameID, { $push: { reviews: reviewID } }).exec();
   }
 }

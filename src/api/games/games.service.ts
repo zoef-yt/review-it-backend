@@ -2,11 +2,12 @@ import axios from 'axios';
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 
 import { RawgGame } from './interface/game.interface';
-import { FetchGamesResponseDto, GameDto } from './dto/game.dto';
+import { FetchGamesQueryDto } from './dto/fetchGames.dto';
 
 @Injectable()
 export class GamesService {
-  async fetchGames(page_size: number, page: number, search: string = null): Promise<FetchGamesResponseDto> {
+  async fetchGames(fetchGamesQueryDto: FetchGamesQueryDto) {
+    const { page, page_size, search } = fetchGamesQueryDto;
     try {
       const response = await axios.get(process.env.RAWG_API_URL, {
         params: {
@@ -21,14 +22,14 @@ export class GamesService {
         },
         validateStatus: (status) => status >= 200 && status < 300,
       });
-      const games: GameDto[] = response.data.results.map(this.mapToGameDto);
+      const games = response.data.results.map(this.mapToGameDto);
       return { count: games.length, results: games };
     } catch (error) {
       return this.handleApiError(error);
     }
   }
 
-  async fetchSingleGame(slug: string): Promise<GameDto> {
+  async fetchSingleGame(slug: string) {
     try {
       const response = await axios.get(`${process.env.RAWG_API_URL}/${slug}`, {
         params: {
@@ -51,7 +52,7 @@ export class GamesService {
     }
   }
 
-  private mapToGameDto(game: RawgGame): GameDto {
+  private mapToGameDto(game: RawgGame) {
     return {
       id: game.id,
       slug: game.slug,

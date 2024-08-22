@@ -5,7 +5,7 @@ export type GameDocument = Game & Document;
 
 @Schema()
 export class Game extends Document {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   gameID: string;
 
   @Prop({ required: true })
@@ -14,13 +14,13 @@ export class Game extends Document {
   @Prop()
   gameImage?: string;
 
-  @Prop()
+  @Prop({ required: true, unique: true })
   gameSlug?: string;
 
   @Prop()
   description?: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'GameReview' }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'GamesReview' }] })
   reviews?: Types.ObjectId[];
 }
 

@@ -1,11 +1,24 @@
-import { Controller, Post, Body, Get, NotFoundException, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  NotFoundException,
+  HttpStatus,
+  HttpCode,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 
+import { UsersService } from 'src/users/users.service';
+import { ValidateUsernameDTO } from 'src/users/dto/validate-username.dto';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthGuard } from './guards/auth.guards';
-import type { AuthResult } from './interface';
-import { UsersService } from 'src/users/users.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -19,25 +32,52 @@ export class AuthController {
     throw new NotFoundException('This route is not available');
   }
 
+  @Post('validate-username')
+  @HttpCode(HttpStatus.OK)
+  async validateUsername(@Body() validateUserNameDTO: ValidateUsernameDTO): Promise<{ valid: boolean }> {
+    return this.authService.validateUserName(validateUserNameDTO);
+  }
+
   @Post('signup')
-  async signUp(@Body() createUserDto: CreateUserDto): Promise<AuthResult> {
-    return this.authService.register(createUserDto);
+  async signUp(@Body() createUserDto: CreateUserDto) {
+    return this.authService.signup(createUserDto);
   }
 
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto): Promise<AuthResult> {
-    return this.authService.login(loginUserDto);
+  async login(@Request() req, @Body() loginUserDto: LoginUserDto) {
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    return this.authService.login(
+      loginUserDto,
+      ipAddress.startsWith('::ffff:') ? ipAddress.replace('::ffff:', '') : ipAddress,
+    );
   }
 
   @UseGuards(AuthGuard)
   @Get('me')
   async me(@Request() req) {
     const id = req.user;
-    return this.usersService.getUserById(id);
+    return this.usersService.findById(id);
   }
 
-  // @Post('forget-password')
-  // async forgetPassword(@Body() body: { email: string }) {
-  //   return this.authService.forgetPassword(body.email);
-  // }
+  @UseGuards(AuthGuard)
+  @Post('change-password')
+  async changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
+    const id = req.user;
+    await this.authService.changePassword(id, changePasswordDto);
+    return { message: 'Password changed successfully' };
+  }
+
+  @Post('request-password-reset')
+  @HttpCode(HttpStatus.OK)
+  async requestPasswordReset(@Body() requestPasswordResetDto: RequestPasswordResetDto) {
+    await this.authService.requestPasswordReset(requestPasswordResetDto);
+    return { message: 'If the email exists, a password reset link has been sent' };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(resetPasswordDto);
+    return { message: 'Password reset successful' };
+  }
 }
