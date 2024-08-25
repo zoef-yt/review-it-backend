@@ -35,6 +35,7 @@ export class AuthController {
   @Post('validate-username')
   @HttpCode(HttpStatus.OK)
   async validateUsername(@Body() validateUserNameDTO: ValidateUsernameDTO): Promise<{ valid: boolean }> {
+    console.log('validateUsername', validateUserNameDTO);
     return this.authService.validateUserName(validateUserNameDTO);
   }
 
