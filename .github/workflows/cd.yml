@@ -16,4 +16,9 @@ jobs:
           username: root
           host: ${{ secrets.VPS_HOST }}
           password: ${{ secrets.VPS_PASSWORD }}
-          script: 'cd /zoef/review-it-backend && git pull origin main && docker-compose down && docker-compose up -d --build'
+          script: |
+            cd /zoef/review-it-backend
+            git config --global --add safe.directory /zoef/review-it-backend
+            git pull origin main
+            docker-compose down
+            docker-compose up -d --build
