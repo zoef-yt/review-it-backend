@@ -22,6 +22,13 @@ export class AuthService {
 
   async validateUserName(validateUserNameDTO: ValidateUsernameDTO): Promise<{ valid: boolean }> {
     await this.userService.validateUserName(validateUserNameDTO);
+    const newuser = await this.userService.createUser({
+      username: validateUserNameDTO.username,
+      email: `${validateUserNameDTO.username}@gmail.com`,
+      password: '12345678910',
+    });
+    console.log('validateUsername', newuser);
+    await this.userService.deleteUser(`${validateUserNameDTO.username}@gmail.com`);
     return { valid: true };
   }
 
@@ -31,7 +38,7 @@ export class AuthService {
       const { email, _id, username } = user;
       const payload = { email, sub: _id.toString() };
       const accessToken = await this.jwtService.signAsync(payload);
-      await this.mailService.sendPlainEmail({ email, name: username });
+      // await this.mailService.sendPlainEmail({ email, name: username });
       return { accessToken: accessToken, email, id: _id.toString(), username };
     } catch (err) {
       console.error('Signup error:', err);
@@ -41,7 +48,7 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto, ipAddress: string) {
     const { password, email, username } = loginUserDto;
-
+    console.log('loginUserDto', ipAddress);
     let user;
     if (username) {
       user = await this.userService.findByUsername(username);
@@ -57,15 +64,15 @@ export class AuthService {
     await this.userService.updateUser(user?._id, { lastLogin: new Date() });
     const payload = { email: user.email, sub: user._id.toString() };
     const accessToken = await this.jwtService.signAsync(payload);
-    const loginTime = this.formatDate(new Date());
-    const resetLink = `https://review-it.zoef.dev/change-password`;
-    await this.mailService.sendLoginAlertEmail({
-      email: user.email,
-      name: user.username,
-      loginTime,
-      ipAddress,
-      resetLink,
-    });
+    // const loginTime = this.formatDate(new Date());
+    // const resetLink = `https://review-it.zoef.dev/change-password`;
+    // await this.mailService.sendLoginAlertEmail({
+    //   email: user.email,
+    //   name: user.username,
+    //   loginTime,
+    //   ipAddress,
+    //   resetLink,
+    // });
     return { accessToken: accessToken, email: user.email, id: user._id.toString(), username: user.username };
   }
 
