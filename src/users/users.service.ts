@@ -20,7 +20,9 @@ export class UsersService {
     }
     return true;
   }
-
+  async deleteUser(email: string) {
+    return await this.userModel.findByIdAndDelete(email).exec();
+  }
   async createUser(createUserDto: CreateUserDto) {
     const { email, username, password } = createUserDto;
     const hashedPassword = await bcrypt.hash(password, 10);
