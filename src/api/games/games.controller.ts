@@ -8,8 +8,7 @@ export class GamesController {
 
   @Get()
   async fetchGames(@Query() query: FetchGamesQueryDto) {
-    const { page_size = 15, page = 1, search } = query;
-    return this.gamesService.fetchGames({ page_size, page, search });
+    return this.gamesService.fetchGames(query);
   }
 
   @Get(':slug')

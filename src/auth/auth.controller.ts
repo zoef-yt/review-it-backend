@@ -46,11 +46,9 @@ export class AuthController {
 
   @Post('login')
   async login(@Request() req, @Body() loginUserDto: LoginUserDto) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
-    return this.authService.login(
-      loginUserDto,
-      ipAddress.startsWith('::ffff:') ? ipAddress.replace('::ffff:', '') : ipAddress,
-    );
+    const ipAddress = (req.headers['x-forwarded-for'] || req.connection.remoteAddress) as string;
+    const ip = ipAddress.split(',').shift()?.trim();
+    return this.authService.login(loginUserDto, ip?.startsWith('::ffff:') ? ip.replace('::ffff:', '') : ip);
   }
 
   @UseGuards(AuthGuard)
@@ -82,3 +80,10 @@ export class AuthController {
     return { message: 'Password reset successful' };
   }
 }
+// @Post('invalidate-tokens')
+// @HttpCode(HttpStatus.OK)
+// async invalidateTokens(@Body('userId') userId: string) {
+//   console.log('Invalidating tokens for user:', userId);
+//   await this.authService.invalidateTokens(userId);
+//   return { message: 'All tokens invalidated' };
+// }

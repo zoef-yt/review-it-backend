@@ -31,7 +31,7 @@ export class AuthService {
       const { email, _id, username } = user;
       const payload = { email, sub: _id.toString() };
       const accessToken = await this.jwtService.signAsync(payload);
-      await this.mailService.sendPlainEmail({ email, name: username });
+      this.mailService.sendPlainEmail({ email, name: username });
       return { accessToken: accessToken, email, id: _id.toString(), username };
     } catch (err) {
       console.error('Signup error:', err);
@@ -41,7 +41,6 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto, ipAddress: string) {
     const { password, email, username } = loginUserDto;
-    console.log('loginUserDto', ipAddress);
     let user;
     if (username) {
       user = await this.userService.findByUsername(username);
@@ -59,7 +58,7 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(payload);
     const loginTime = this.formatDate(new Date());
     const resetLink = `https://review-it.zoef.dev/change-password`;
-    await this.mailService.sendLoginAlertEmail({
+    this.mailService.sendLoginAlertEmail({
       email: user.email,
       name: user.username,
       loginTime,
@@ -92,8 +91,8 @@ export class AuthService {
     const resetTokenExpiry = new Date();
     resetTokenExpiry.setMinutes(resetTokenExpiry.getMinutes() + 15);
     await this.userService.updateUser(user._id as string, { resetToken: hashedToken, resetTokenExpiry });
-    const resetLink = `https://review-it.zoef.dev/reset-password?token=${resetToken}&email=${email}`;
-    await this.mailService.sendPasswordResetEmail({ email: user.email, url: resetLink, name: user.username });
+    const resetLink = `https://review-it.zoef.dev/reset-password?email=${email}&temp_token=${resetToken}`;
+    this.mailService.sendPasswordResetEmail({ email: user.email, url: resetLink, name: user.username });
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {

@@ -7,26 +7,44 @@ import { FetchGamesQueryDto } from './dto/fetchGames.dto';
 @Injectable()
 export class GamesService {
   async fetchGames(fetchGamesQueryDto: FetchGamesQueryDto) {
-    const { page, page_size, search } = fetchGamesQueryDto;
+    const { page, page_size, search, ordering, dateRange, skipFilter } = fetchGamesQueryDto;
     try {
+      const params = {
+        key: process.env.RAWG_API_KEY,
+        page_size: page_size,
+        page: page ?? 1,
+        ordering: ordering ? `${ordering},-metacritic,-rating` : '-metacritic,-rating',
+        exclude_stores: '9,8,6,5,4',
+        parent_platforms: '1,2,3,6',
+        dates: dateRange ?? undefined,
+        ...(search ? { search_precise: true, search } : {}),
+      };
       const response = await axios.get(process.env.RAWG_API_URL, {
-        params: {
-          key: process.env.RAWG_API_KEY,
-          page_size,
-          page,
-          search,
-          ordering: '-metacritic, -rating',
-          exclude_stores: '9,8,6,5,4',
-          parent_platforms: '1,2,3,6',
-          search_precise: true,
-        },
+        params: params,
         validateStatus: (status) => status >= 200 && status < 300,
       });
-      const games = response.data.results.map(this.mapToGameDto);
+      const games = skipFilter
+        ? response.data.results.map(this.mapToGameDto)
+        : this.filterGames(response.data.results).map(this.mapToGameDto);
       return { count: games.length, results: games };
     } catch (error) {
       return this.handleApiError(error);
     }
+  }
+
+  private filterGames(games: RawgGame[]): RawgGame[] {
+    return games
+      .filter((game: RawgGame) => game.background_image !== null)
+      .sort((a, b) => {
+        if (a.released < b.released) {
+          return 1;
+        } else if (a.released > b.released) {
+          return -1;
+        } else {
+          return 0;
+        }
+      })
+      .filter((game: RawgGame) => game.rating === null || game.rating > 0);
   }
 
   async fetchSingleGame(slug: string) {
