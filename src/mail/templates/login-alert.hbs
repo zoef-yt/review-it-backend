@@ -3,17 +3,49 @@
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>Login Alert</title>
+    <style>
+      body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; color: #333333; }
+      .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #dddddd;
+      border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); } .email-header {
+      background-color: #1f2937; padding: 20px; text-align: center; color: #ffffff; } .email-header h1 { margin: 0;
+      font-size: 24px; } .email-body { padding: 20px; text-align: left; } .email-body h2 { color: #1f2937; font-size:
+      20px; } .email-body p { margin: 10px 0; line-height: 1.5; color: #4b5563; } .email-body a { color: #2563eb;
+      text-decoration: none; } .email-footer { background-color: #f9fafb; padding: 20px; text-align: center; color:
+      #9ca3af; font-size: 12px; }
+    </style>
   </head>
   <body>
-    <h2>Hello {{name}},</h2>
-    <p>We noticed a new login to your account.</p>
-    <p><strong>Date and Time:</strong> {{loginTime}}</p>
-    <p><strong>IP Address:</strong> {{ipAddress}}</p>
+    <div class='email-container'>
+      <div class='email-header'>
+        <h1>Review It</h1>
+      </div>
+      <div class='email-body' style='text-align: center; padding: 20px;'>
+        <h2 style='color: #1f2937; font-size: 20px;'>Hello {{name}},</h2>
+        <p style='margin: 10px 0; color: #4b5563;'>We noticed a new login to your account.</p>
+        <p style='margin: 10px 0; color: #4b5563;'><strong>Date and Time:</strong> {{loginTime}}</p>
+        <p style='margin: 10px 0; color: #4b5563;'><strong>IP Address:</strong> {{ipAddress}}</p>
 
-    <p>If this was you, you can ignore this email. If this wasn't you, please
-      <a href='{{resetLink}}'>change your password</a>
-      immediately to secure your account.</p>
+        <p style='margin: 20px 0; color: #4b5563;'>If this wasn't you,</p>
+        <a
+          href='{{resetLink}}'
+          style='display: inline-block; background-color: #2563eb; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'
+        >
+          Change Your Password
+        </a>
 
-    <p>Thank you,<br />Review It</p>
+        <p style='margin: 20px 0; color: #4b5563;'>Please change your password immediately to secure your account.</p>
+        <p style='margin-top: 20px; color: #4b5563;'>
+          If the button is not clickable, copy and paste the following link into your browser:
+        </p>
+        <p style='margin: 10px 0; color: #2563eb;'>{{resetLink}}</p>
+
+        <p style='margin-top: 20px; color: #4b5563;'>
+          Thank you,<br />Review It Team
+        </p>
+      </div>
+      <div class='email-footer'>
+        <p>©2024 Review It. All rights reserved.</p>
+      </div>
+    </div>
   </body>
 </html>
