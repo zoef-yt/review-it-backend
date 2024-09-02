@@ -39,8 +39,9 @@ export class AuthService {
     }
   }
 
-  async login(loginUserDto: LoginUserDto, ipAddress: string) {
-    const { password, email, username } = loginUserDto;
+  async login(loginUserDto: LoginUserDto) {
+    const { password, email, username, userInfo } = loginUserDto;
+    const { device, ipAddress, loginTime } = userInfo;
     let user;
     if (username) {
       user = await this.userService.findByUsername(username);
@@ -56,7 +57,6 @@ export class AuthService {
     await this.userService.updateUser(user?._id, { lastLogin: new Date() });
     const payload = { email: user.email, sub: user._id.toString() };
     const accessToken = await this.jwtService.signAsync(payload);
-    const loginTime = this.formatDate(new Date());
     const resetLink = `https://review-it.zoef.dev/change-password`;
     this.mailService.sendLoginAlertEmail({
       email: user.email,
@@ -64,6 +64,7 @@ export class AuthService {
       loginTime,
       ipAddress,
       resetLink,
+      device,
     });
     return { accessToken: accessToken, email: user.email, id: user._id.toString(), username: user.username };
   }
@@ -120,18 +121,5 @@ export class AuthService {
   private async invalidateTokens(userId: string): Promise<void> {
     const tokensInvalidatedAt = new Date();
     await this.userService.updateUser(userId, { tokensInvalidatedAt });
-  }
-
-  private formatDate(date: Date): string {
-    const options: Intl.DateTimeFormatOptions = {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZoneName: 'short',
-    };
-    return new Intl.DateTimeFormat('en-US', options).format(date);
   }
 }

@@ -59,8 +59,9 @@ export class MailService {
     loginTime: string;
     ipAddress: string;
     resetLink: string;
+    device: string;
   }) {
-    const { email, ipAddress, loginTime, name, resetLink } = prop;
+    const { email, ipAddress, loginTime, name, resetLink, device } = prop;
     await this.mailerService.sendMail({
       bcc: process.env.EMAIL_USER,
       to: email,
@@ -71,6 +72,7 @@ export class MailService {
         loginTime,
         ipAddress,
         resetLink,
+        device,
       },
     });
   }

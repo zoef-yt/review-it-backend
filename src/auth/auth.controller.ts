@@ -45,10 +45,8 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Request() req, @Body() loginUserDto: LoginUserDto) {
-    const ipAddress = (req.headers['x-forwarded-for'] || req.connection.remoteAddress) as string;
-    const ip = ipAddress.split(',').shift()?.trim();
-    return this.authService.login(loginUserDto, ip?.startsWith('::ffff:') ? ip.replace('::ffff:', '') : ip);
+  async login(@Body() loginUserDto: LoginUserDto) {
+    return this.authService.login(loginUserDto);
   }
 
   @UseGuards(AuthGuard)

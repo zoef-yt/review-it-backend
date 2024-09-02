@@ -1,5 +1,15 @@
-import { IsString, ValidateIf, IsEmail, IsDefined } from 'class-validator';
+import { IsString, ValidateIf, IsEmail, IsDefined, IsObject } from 'class-validator';
 
+class UserInfoDto {
+  @IsString()
+  device: string;
+
+  @IsString()
+  ipAddress: string;
+
+  @IsString()
+  loginTime: string;
+}
 export class LoginUserDto {
   @ValidateIf((o) => !o.username)
   @IsEmail({}, { message: 'Invalid email format' })
@@ -11,6 +21,9 @@ export class LoginUserDto {
 
   @IsString()
   password: string;
+
+  @IsObject()
+  userInfo: UserInfoDto;
 
   @ValidateIf((o) => !o.email && !o.username)
   @IsDefined({ message: 'Either email or username must be provided' })
