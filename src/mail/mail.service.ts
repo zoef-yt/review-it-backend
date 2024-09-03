@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import { AccountCreatedEmailDto } from './dto/create-mail.dto';
+
 import { MailResponse } from './interface';
-import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 
 @Injectable()
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async sendPlainEmail(sendEmailDto: AccountCreatedEmailDto): Promise<MailResponse> {
+  async sendPlainEmail(sendEmailDto: SendEmail): Promise<MailResponse> {
     const { email: to, name } = sendEmailDto;
     try {
       await this.mailerService.sendMail({
@@ -33,8 +32,8 @@ export class MailService {
     }
   }
 
-  async sendPasswordResetEmail(resetPasswordRequestDto: ResetPasswordRequestDto) {
-    const { email, name, url } = resetPasswordRequestDto;
+  async sendPasswordResetEmail(prop: ResetPasswordRequest) {
+    const { email, name, url, device, ipAddress, time } = prop;
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -44,6 +43,9 @@ export class MailService {
         context: {
           name,
           url,
+          time,
+          ipAddress,
+          device,
         },
       });
       return { response: `Password reset email sent to ${email}` };
@@ -52,15 +54,7 @@ export class MailService {
       return { isError: true, response: 'Error sending password reset email' };
     }
   }
-
-  async sendLoginAlertEmail(prop: {
-    email: string;
-    name: string;
-    loginTime: string;
-    ipAddress: string;
-    resetLink: string;
-    device: string;
-  }) {
+  async sendLoginAlertEmail(prop: LoginAlertEmail) {
     const { email, ipAddress, loginTime, name, resetLink, device } = prop;
     await this.mailerService.sendMail({
       bcc: process.env.EMAIL_USER,
@@ -76,4 +70,27 @@ export class MailService {
       },
     });
   }
+}
+
+interface SendEmail {
+  email: string;
+  name: string;
+}
+
+interface ResetPasswordRequest {
+  email: string;
+  name: string;
+  url: string;
+  time: string;
+  ipAddress: string;
+  device: string;
+}
+
+interface LoginAlertEmail {
+  email: string;
+  name: string;
+  loginTime: string;
+  ipAddress: string;
+  resetLink: string;
+  device: string;
 }

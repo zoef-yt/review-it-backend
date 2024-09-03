@@ -84,7 +84,8 @@ export class AuthService {
   }
 
   async requestPasswordReset(requestPasswordResetDto: RequestPasswordResetDto) {
-    const { email } = requestPasswordResetDto;
+    const { email, userInfo } = requestPasswordResetDto;
+    const { device, ipAddress, time } = userInfo;
     const user = await this.userService.findByEmail(email);
     if (!user) throw new NotFoundException('User not found');
     const resetToken = uuidv4();
@@ -93,7 +94,14 @@ export class AuthService {
     resetTokenExpiry.setMinutes(resetTokenExpiry.getMinutes() + 15);
     await this.userService.updateUser(user._id as string, { resetToken: hashedToken, resetTokenExpiry });
     const resetLink = `https://review-it.zoef.dev/reset-password?email=${email}&temp_token=${resetToken}`;
-    this.mailService.sendPasswordResetEmail({ email: user.email, url: resetLink, name: user.username });
+    this.mailService.sendPasswordResetEmail({
+      email: user.email,
+      url: resetLink,
+      name: user.username,
+      device,
+      ipAddress,
+      time,
+    });
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
