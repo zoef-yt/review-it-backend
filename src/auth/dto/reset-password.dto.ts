@@ -1,4 +1,15 @@
-import { IsString, IsNotEmpty, MinLength, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsEmail, IsObject } from 'class-validator';
+
+class UserInfoDto {
+  @IsString()
+  device: string;
+
+  @IsString()
+  ipAddress: string;
+
+  @IsString()
+  time: string;
+}
 
 export class ResetPasswordDto {
   @IsEmail({}, { message: 'Invalid email' })
@@ -12,4 +23,7 @@ export class ResetPasswordDto {
   @IsString()
   @IsNotEmpty()
   token: string;
+
+  @IsObject()
+  userInfo: UserInfoDto;
 }

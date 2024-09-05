@@ -78,10 +78,3 @@ export class AuthController {
     return { message: 'Password reset successful' };
   }
 }
-// @Post('invalidate-tokens')
-// @HttpCode(HttpStatus.OK)
-// async invalidateTokens(@Body('userId') userId: string) {
-//   console.log('Invalidating tokens for user:', userId);
-//   await this.authService.invalidateTokens(userId);
-//   return { message: 'All tokens invalidated' };
-// }

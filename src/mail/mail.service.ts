@@ -1,38 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-
-import { MailResponse } from './interface';
+import {
+  LoginAlertEmail,
+  MailResponse,
+  ResetPasswordRequest,
+  SendChangePasswordEmail,
+  WelcomeEmail,
+} from './interface';
 
 @Injectable()
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async sendPlainEmail(sendEmailDto: SendEmail): Promise<MailResponse> {
-    const { email: to, name } = sendEmailDto;
+  async sendWelcomeEmail(welcomeEmailDto: WelcomeEmail): Promise<MailResponse> {
+    if (process.env.ENVIRONMENT !== 'prod') {
+      return { isError: false, response: 'Email sending skipped in non-prod environment' };
+    }
+    const { email: to, name } = welcomeEmailDto;
     try {
       await this.mailerService.sendMail({
         to,
         bcc: process.env.EMAIL_USER,
         subject: 'Welcome to Review It!',
         template: './welcome',
-        context: {
-          name,
-        },
+        context: { name },
       });
-      return { response: `Email sent to ${to}` };
+      return { isError: false, response: `Email sent to ${to}` };
     } catch (e) {
-      console.error(e);
-      if (e.response && e.response.includes('550')) {
-        return {
-          isError: true,
-          response: `Failed to send email: ${e.response}`,
-        };
-      }
-      return { isError: true, response: 'Error sending email' };
+      console.error('Error sending welcome email:', e);
+      return {
+        isError: true,
+        errorDetails: e.message,
+      };
     }
   }
 
-  async sendPasswordResetEmail(prop: ResetPasswordRequest) {
+  async sendPasswordResetEmail(prop: ResetPasswordRequest): Promise<MailResponse> {
+    if (process.env.ENVIRONMENT !== 'prod') {
+      return { isError: false, response: 'Email sending skipped in non-prod environment' };
+    }
     const { email, name, url, device, ipAddress, time } = prop;
     try {
       await this.mailerService.sendMail({
@@ -48,49 +54,70 @@ export class MailService {
           device,
         },
       });
-      return { response: `Password reset email sent to ${email}` };
+      return { isError: false, response: `Password reset email sent to ${email}` };
     } catch (e) {
       console.error('Error sending password reset email:', e);
-      return { isError: true, response: 'Error sending password reset email' };
+      return {
+        isError: true,
+        errorDetails: e.message,
+      };
     }
   }
-  async sendLoginAlertEmail(prop: LoginAlertEmail) {
+
+  async sendLoginAlertEmail(prop: LoginAlertEmail): Promise<MailResponse> {
+    if (process.env.ENVIRONMENT !== 'prod') {
+      return { isError: false, response: 'Email sending skipped in non-prod environment' };
+    }
     const { email, ipAddress, loginTime, name, resetLink, device } = prop;
-    await this.mailerService.sendMail({
-      bcc: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Login Alert - Your Account',
-      template: './login-alert',
-      context: {
-        name,
-        loginTime,
-        ipAddress,
-        resetLink,
-        device,
-      },
-    });
+    try {
+      await this.mailerService.sendMail({
+        bcc: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Login Alert - Your Account',
+        template: './login-alert',
+        context: {
+          name,
+          loginTime,
+          ipAddress,
+          resetLink,
+          device,
+        },
+      });
+      return { isError: false, response: `Login alert email sent to ${email}` };
+    } catch (e) {
+      console.error('Error sending login alert email:', e);
+      return {
+        isError: true,
+        errorDetails: e.message,
+      };
+    }
   }
-}
-
-interface SendEmail {
-  email: string;
-  name: string;
-}
-
-interface ResetPasswordRequest {
-  email: string;
-  name: string;
-  url: string;
-  time: string;
-  ipAddress: string;
-  device: string;
-}
-
-interface LoginAlertEmail {
-  email: string;
-  name: string;
-  loginTime: string;
-  ipAddress: string;
-  resetLink: string;
-  device: string;
+  async sendChangePasswordAlertEmail(prop: SendChangePasswordEmail): Promise<MailResponse> {
+    if (process.env.ENVIRONMENT !== 'prod') {
+      return { isError: false, response: 'Email sending skipped in non-prod environment' };
+    }
+    const { email, ipAddress, name, time, device, url } = prop;
+    try {
+      await this.mailerService.sendMail({
+        bcc: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Password Change Alert',
+        template: './password-change-alert',
+        context: {
+          name,
+          time,
+          ipAddress,
+          device,
+          url,
+        },
+      });
+      return { isError: false, response: `Password change alert email sent to ${email}` };
+    } catch (e) {
+      console.error('Error sending password change alert email:', e);
+      return {
+        isError: true,
+        errorDetails: e.message,
+      };
+    }
+  }
 }

@@ -31,7 +31,7 @@ export class AuthService {
       const { email, _id, username } = user;
       const payload = { email, sub: _id.toString() };
       const accessToken = await this.jwtService.signAsync(payload);
-      this.mailService.sendPlainEmail({ email, name: username });
+      this.mailService.sendWelcomeEmail({ email, name: username });
       return { accessToken: accessToken, email, id: _id.toString(), username };
     } catch (err) {
       console.error('Signup error:', err);
@@ -71,12 +71,23 @@ export class AuthService {
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
     try {
+      const { userInfo } = changePasswordDto;
+      const { device, ipAddress, time } = userInfo;
       const user = await this.userService.findById(userId);
       if (!user) throw new UnauthorizedException('Invalid credentials');
       const isPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
       if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');
       await this.updatePassword(userId, changePasswordDto.newPassword);
       await this.invalidateTokens(userId);
+      const resetLink = `https://review-it.zoef.dev/change-password`;
+      this.mailService.sendChangePasswordAlertEmail({
+        email: user.email,
+        name: user.username,
+        time,
+        ipAddress,
+        device,
+        url: resetLink,
+      });
     } catch (err) {
       console.error('Change password error:', err);
       throw err;
@@ -106,17 +117,30 @@ export class AuthService {
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     try {
-      const { token, newPassword, email } = resetPasswordDto;
+      const { token, newPassword, email, userInfo } = resetPasswordDto;
+      const { device, ipAddress, time } = userInfo;
       const user = await this.userService.findByEmail(email);
+      if (!token || !user.resetToken) {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
       const isTokenValid = await bcrypt.compare(token, user.resetToken);
       if (!isTokenValid || new Date() > user.resetTokenExpiry)
         throw new UnauthorizedException('Invalid or expired token');
       await this.updatePassword(user._id as string, newPassword);
       await this.userService.updateUser(user._id as string, { resetToken: null, resetTokenExpiry: null });
       await this.invalidateTokens(user._id as string);
+
+      const resetLink = `https://review-it.zoef.dev/change-password`;
+      this.mailService.sendChangePasswordAlertEmail({
+        email: user.email,
+        name: user.username,
+        time,
+        ipAddress,
+        device,
+        url: resetLink,
+      });
       return { message: 'Password reset successfully' };
     } catch (err) {
-      console.error('Reset password error:', err);
       throw err;
     }
   }
