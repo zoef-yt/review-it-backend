@@ -1,8 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { GamesReviews } from 'src/games-review/schema/games-review.schema';
-import { Game } from 'src/games/schema/games.schema';
-
 export type UserDocument = User & Document;
 
 @Schema()
@@ -39,13 +36,13 @@ export class User {
   @Prop({ type: [LikeGenreSchema], default: [] })
   likedGamesGenres?: LikedGamesGenre[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: Game.name }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Game' }] })
   playedGames: Types.ObjectId[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: Game.name }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Game' }] })
   currentGame: Types.ObjectId[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: GamesReviews.name }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'GamesReview' }] })
   gamesReviews: Types.ObjectId[];
 
   @Prop({ default: null })

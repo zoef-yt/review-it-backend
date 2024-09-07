@@ -62,11 +62,25 @@ export class UsersService {
   }
 
   async findById(id: string): Promise<UserDocument> {
-    const user = await this.userModel.findById(id).exec();
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      const user = await this.userModel
+        .findById(id)
+        .populate({
+          path: 'gamesReviews',
+          model: 'GamesReviews',
+          populate: {
+            path: 'gameID',
+            model: 'Game',
+          },
+        })
+        .exec();
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (err) {
+      console.log(err);
     }
-    return user;
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDTO) {

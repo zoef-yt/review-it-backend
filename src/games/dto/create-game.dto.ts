@@ -1,17 +1,19 @@
 import { Type } from 'class-transformer';
-import { IsString, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsArray, ValidateNested, IsNumber } from 'class-validator';
 
 class GenreDto {
-  @IsString()
-  id: string;
+  @Type(() => Number)
+  @IsNumber()
+  id: number;
 
   @IsString()
   name: string;
 }
 
 export class CreateGameDto {
-  @IsString()
-  gameID: string;
+  @IsNumber()
+  @Type(() => Number)
+  gameID: number;
 
   @IsString()
   gameName: string;
