@@ -65,13 +65,28 @@ export class UsersService {
     try {
       const user = await this.userModel
         .findById(id)
+        .select('username email lastLogin createdAt')
         .populate({
           path: 'gamesReviews',
           model: 'GamesReviews',
+          select: '_id rating comment',
           populate: {
             path: 'gameID',
             model: 'Game',
+            select: 'gameName gameImage gameSlug averageRating',
           },
+        })
+        .populate({
+          path: 'playedGames',
+          model: 'Game',
+        })
+        .populate({
+          path: 'currentGame',
+          model: 'Game',
+        })
+        .populate({
+          path: 'likedGamesGenres',
+          model: 'GamesGenres',
         })
         .exec();
       if (!user) {

@@ -29,7 +29,20 @@ export class GamesService {
   }
 
   async findOneByGameSlug(gameSlug: string): Promise<Game> {
-    const game = await this.gameModel.findOne({ gameSlug: gameSlug }).exec();
+    const game = await this.gameModel
+      .findOne({ gameSlug: gameSlug })
+      .select('gameName gameSlug gameImage reviewsCount averageRating')
+      .populate({
+        path: 'reviews',
+        model: 'GamesReviews',
+        select: '_id rating comment gameID createdAt',
+        populate: {
+          path: 'userID',
+          model: 'User',
+          select: 'username _id',
+        },
+      })
+      .exec();
     return game;
   }
 

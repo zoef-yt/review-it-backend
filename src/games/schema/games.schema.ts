@@ -11,6 +11,12 @@ export class Game extends Document {
   @Prop({ required: true })
   gameName: string;
 
+  @Prop({ default: 0 })
+  averageRating: number;
+
+  @Prop({ default: 0 })
+  reviewsCount: number;
+
   @Prop()
   gameImage?: string;
 
