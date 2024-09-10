@@ -46,7 +46,10 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<UserDocument> {
-    const user = await this.userModel.findOne({ email }).exec();
+    const user = await this.userModel
+      .findOne({ email })
+      .select('_id username email resetToken resetTokenExpiry')
+      .exec();
     if (!user) {
       throw new NotFoundException('User with this email does not exist');
     }
@@ -99,7 +102,7 @@ export class UsersService {
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDTO) {
-    return await this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
+    await this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
   }
 
   async addReviewToUser(userID: string, reviewID: string): Promise<void> {
