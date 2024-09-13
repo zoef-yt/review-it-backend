@@ -1,15 +1,13 @@
-import { Type } from 'class-transformer';
-import {
-  IsOptional,
-  IsInt,
-  Min,
-  IsString,
-  IsArray,
-  ArrayMinSize,
-  ArrayMaxSize,
-  ValidateIf,
-  IsBoolean,
-} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsOptional, IsInt, Min, IsString } from 'class-validator';
+
+const optionalBooleanMapper = new Map([
+  ['undefined', undefined],
+  ['true', true],
+  ['false', false],
+]);
+
+const ParseOptionalBoolean = () => Transform(({ value }) => optionalBooleanMapper.get(value));
 
 export class FetchGamesQueryDto {
   @IsOptional()
@@ -25,11 +23,8 @@ export class FetchGamesQueryDto {
   page?: number;
 
   @IsOptional()
-  @IsArray({ message: 'dateRange must be an array.' })
-  @ArrayMinSize(2, { message: 'dateRange must have exactly two dates.' })
-  @ArrayMaxSize(2, { message: 'dateRange must have exactly two dates.' })
-  @ValidateIf((o) => o.dateRange && o.dateRange.length === 2)
-  dateRange?: [string, string];
+  @IsString()
+  dateRange?: string;
 
   @IsOptional()
   @IsString()
@@ -40,8 +35,7 @@ export class FetchGamesQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsBoolean()
-  @Type(() => Boolean)
+  @ParseOptionalBoolean()
   skipFilter?: boolean;
 }
 

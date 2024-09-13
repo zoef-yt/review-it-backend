@@ -1,76 +1,84 @@
-import axios from 'axios';
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import axios, { AxiosResponse } from 'axios';
+import { ConfigService } from '@nestjs/config';
 
-import { RawgGame } from './interface/game.interface';
 import { FetchGamesQueryDto } from './dto/fetchGames.dto';
+import { GameDto, QueryParams, RawgGame } from './interface/game.interface';
 
 @Injectable()
 export class GamesService {
-  async fetchGames(fetchGamesQueryDto: FetchGamesQueryDto) {
-    const { page, page_size, search, ordering, dateRange, skipFilter } = fetchGamesQueryDto;
+  private readonly apiKey: string;
+  private readonly apiUrl: string;
+
+  constructor(private configService: ConfigService) {
+    this.apiKey = this.configService.get<string>('RAWG_API_KEY');
+    this.apiUrl = this.configService.get<string>('RAWG_API_URL');
+  }
+
+  async fetchGames(fetchGamesQueryDto: FetchGamesQueryDto): Promise<{ count: number; results: GameDto[] }> {
     try {
-      const params = {
-        key: process.env.RAWG_API_KEY,
-        page_size: page_size,
-        page: page ?? 1,
-        ordering: ordering ? `${ordering},-metacritic,-rating` : '-metacritic,-rating',
-        exclude_stores: '9,8,6,5,4',
-        parent_platforms: '1,2,3,6',
-        dates: dateRange ?? undefined,
-        ...(search ? { search_precise: true, search } : {}),
-      };
-      const response = await axios.get(process.env.RAWG_API_URL, {
-        params: params,
-        validateStatus: (status) => status >= 200 && status < 300,
-      });
-      const games = skipFilter
-        ? response.data.results.map(this.mapToGameDto)
-        : this.filterGames(response.data.results).map(this.mapToGameDto);
+      const params = this.buildQueryParams(fetchGamesQueryDto);
+      const response = await this.makeApiRequest<{ results: RawgGame[] }>(this.apiUrl, params);
+      const games = this.processGames(response.data.results, fetchGamesQueryDto.skipFilter);
       return { count: games.length, results: games };
     } catch (error) {
-      return this.handleApiError(error);
+      this.handleApiError(error);
     }
+  }
+
+  async fetchSingleGame(slug: string): Promise<GameDto> {
+    try {
+      const response = await this.makeApiRequest<RawgGame>(`${this.apiUrl}/${slug}`, { key: this.apiKey });
+      return this.mapToGameDto(response.data);
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  private buildQueryParams(queryDto: FetchGamesQueryDto): QueryParams {
+    const { page, page_size, search, ordering, dateRange } = queryDto;
+    return {
+      key: this.apiKey,
+      page_size,
+      page: page ?? 1,
+      ordering: ordering ? `${ordering},-metacritic,-rating` : '-metacritic,-rating',
+      exclude_stores: '9,8,6,5,4',
+      parent_platforms: '1,2,3,6',
+      dates: dateRange ?? undefined,
+      ...(search ? { search_precise: true, search } : {}),
+    };
+  }
+
+  private async makeApiRequest<T>(url: string, params: Record<string, any>): Promise<AxiosResponse<T>> {
+    return axios.get<T>(url, {
+      params,
+      validateStatus: (status) => status >= 200 && status < 300,
+    });
+  }
+
+  private processGames(games: RawgGame[], skipFilter: boolean): GameDto[] {
+    return skipFilter ? games.map(this.mapToGameDto) : this.filterGames(games).map(this.mapToGameDto);
   }
 
   private filterGames(games: RawgGame[]): RawgGame[] {
     return games
-      .filter((game: RawgGame) => game.background_image !== null)
-      .sort((a, b) => {
-        if (a.released < b.released) {
-          return 1;
-        } else if (a.released > b.released) {
-          return -1;
-        } else {
-          return 0;
-        }
-      })
-      .filter((game: RawgGame) => game.rating === null || game.rating > 0);
-  }
-
-  async fetchSingleGame(slug: string) {
-    try {
-      const response = await axios.get(`${process.env.RAWG_API_URL}/${slug}`, {
-        params: {
-          key: process.env.RAWG_API_KEY,
-        },
-      });
-      return this.mapToGameDto(response.data);
-    } catch (error) {
-      return this.handleApiError(error);
-    }
+      .filter((game) => game.background_image !== null)
+      .sort((a, b) => new Date(b.released).getTime() - new Date(a.released).getTime())
+      .filter((game) => game.rating === null || game.rating > 0);
   }
 
   private handleApiError(error: any): never {
-    if (error.response) {
-      throw new HttpException(`RAWG API error: ${error.response.statusText}`, error.response.status);
-    } else if (error.request) {
-      throw new HttpException('No response received from RAWG API', HttpStatus.GATEWAY_TIMEOUT);
-    } else {
-      throw new HttpException('An error occurred while fetching data from RAWG API', HttpStatus.INTERNAL_SERVER_ERROR);
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        throw new HttpException(`RAWG API error: ${error.response.statusText}`, error.response.status);
+      } else if (error.request) {
+        throw new HttpException('No response received from RAWG API', HttpStatus.GATEWAY_TIMEOUT);
+      }
     }
+    throw new HttpException('An error occurred while fetching data from RAWG API', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  private mapToGameDto(game: RawgGame) {
+  private mapToGameDto(game: RawgGame): GameDto {
     return {
       id: game.id,
       slug: game.slug,
@@ -81,50 +89,16 @@ export class GamesService {
       rating: game.rating,
       ratingTop: game.rating_top,
       playtime: game.playtime,
-      platforms:
-        game.platforms?.map((p) => ({
-          id: p.platform.id,
-          name: p.platform.name,
-          slug: p.platform.slug,
-        })) || [],
-      stores:
-        game.stores?.map((s) => ({
-          id: s.store.id,
-          name: s.store.name,
-          slug: s.store.slug,
-        })) || [],
-      genres:
-        game.genres?.map((g) => ({
-          id: g.id,
-          name: g.name,
-          slug: g.slug,
-        })) || [],
-      esrbRating: game.esrb_rating
-        ? {
-            id: game.esrb_rating.id,
-            name: game.esrb_rating.name,
-            slug: game.esrb_rating.slug,
-            name_en: game.esrb_rating.name_en,
-            name_ru: game.esrb_rating.name_ru,
-          }
-        : null,
-      description: game.description_raw || '',
-      alternativeNames: game.alternative_names || [],
-      website: game.website || '',
-      nameOriginal: game.name_original || '',
-      shortScreenshots:
-        game.short_screenshots?.map((ss) => ({
-          id: ss.id,
-          image: ss.image,
-        })) || [],
-      parentPlatforms:
-        game.parent_platforms?.map((pp) => ({
-          platform: {
-            id: pp.platform.id,
-            name: pp.platform.name,
-            slug: pp.platform.slug,
-          },
-        })) || [],
+      platforms: game.platforms?.map((p) => p.platform) ?? [],
+      stores: game.stores?.map((s) => s.store) ?? [],
+      genres: game.genres ?? [],
+      esrbRating: game.esrb_rating,
+      description: game.description_raw ?? '',
+      alternativeNames: game.alternative_names ?? [],
+      website: game.website ?? '',
+      nameOriginal: game.name_original ?? '',
+      shortScreenshots: game.short_screenshots ?? [],
+      parentPlatforms: game.parent_platforms ?? [],
     };
   }
 }

@@ -54,3 +54,37 @@ export interface RawgGame {
   short_screenshots: RawgScreenshot[];
   parent_platforms: RawgParentPlatform[];
 }
+
+export interface GameDto {
+  id: number;
+  slug: string;
+  name: string;
+  released: string;
+  tba: boolean;
+  backgroundImage: string;
+  rating: number;
+  ratingTop: number;
+  playtime: number;
+  platforms: RawgPlatform[];
+  stores: RawgStore[];
+  genres: RawgGenre[];
+  esrbRating: RawgEsrbRating | null;
+  description: string;
+  alternativeNames: string[];
+  website: string;
+  nameOriginal: string;
+  shortScreenshots: RawgScreenshot[];
+  parentPlatforms: RawgParentPlatform[];
+}
+
+export interface QueryParams {
+  key: string;
+  page_size: number;
+  page?: number;
+  ordering: string;
+  exclude_stores?: string;
+  parent_platforms: string;
+  dates?: string;
+  search_precise?: true;
+  search?: string;
+}
