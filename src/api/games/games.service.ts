@@ -3,7 +3,7 @@ import axios, { AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
 
 import { FetchGamesQueryDto } from './dto/fetchGames.dto';
-import { GameDto, QueryParams, RawgGame } from './interface/game.interface';
+import { GameListDto, GameDetailDto, QueryParams, RawgGame } from './interface/game.interface';
 
 @Injectable()
 export class GamesService {
@@ -15,7 +15,7 @@ export class GamesService {
     this.apiUrl = this.configService.get<string>('RAWG_API_URL');
   }
 
-  async fetchGames(fetchGamesQueryDto: FetchGamesQueryDto): Promise<{ count: number; results: GameDto[] }> {
+  async fetchGames(fetchGamesQueryDto: FetchGamesQueryDto): Promise<{ count: number; results: GameListDto[] }> {
     try {
       const params = this.buildQueryParams(fetchGamesQueryDto);
       const response = await this.makeApiRequest<{ results: RawgGame[] }>(this.apiUrl, params);
@@ -26,10 +26,10 @@ export class GamesService {
     }
   }
 
-  async fetchSingleGame(slug: string): Promise<GameDto> {
+  async fetchSingleGame(slug: string): Promise<GameDetailDto> {
     try {
       const response = await this.makeApiRequest<RawgGame>(`${this.apiUrl}/${slug}`, { key: this.apiKey });
-      return this.mapToGameDto(response.data);
+      return this.mapToGameDetailDto(response.data);
     } catch (error) {
       this.handleApiError(error);
     }
@@ -56,8 +56,8 @@ export class GamesService {
     });
   }
 
-  private processGames(games: RawgGame[], skipFilter: boolean): GameDto[] {
-    return skipFilter ? games.map(this.mapToGameDto) : this.filterGames(games).map(this.mapToGameDto);
+  private processGames(games: RawgGame[], skipFilter: boolean): GameListDto[] {
+    return skipFilter ? games.map(this.mapToGameListDto) : this.filterGames(games).map(this.mapToGameListDto);
   }
 
   private filterGames(games: RawgGame[]): RawgGame[] {
@@ -78,7 +78,22 @@ export class GamesService {
     throw new HttpException('An error occurred while fetching data from RAWG API', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  private mapToGameDto(game: RawgGame): GameDto {
+  private mapToGameListDto(game: RawgGame): GameListDto {
+    return {
+      id: game.id,
+      slug: game.slug,
+      name: game.name,
+      released: game.released,
+      tba: game.tba,
+      backgroundImage: game.background_image,
+      rating: game.rating,
+      playtime: game.playtime,
+      genres: game.genres ?? [],
+      alternativeNames: game.alternative_names ?? [],
+    };
+  }
+
+  private mapToGameDetailDto(game: RawgGame): GameDetailDto {
     return {
       id: game.id,
       slug: game.slug,

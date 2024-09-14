@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { isValidObjectId, Model } from 'mongoose';
+import { Model } from 'mongoose';
 
 import { CreateGameDto } from './dto/create-game.dto';
 import { Game } from './schema/games.schema';
@@ -9,24 +9,24 @@ import { Game } from './schema/games.schema';
 export class GamesService {
   constructor(@InjectModel(Game.name) private gameModel: Model<Game>) {}
 
-  async findOne(id: string): Promise<Game> {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException(`Invalid ID format: ${id}`);
-    }
-    const game = await this.gameModel.findById(id).exec();
-    if (!game) {
-      throw new NotFoundException(`Game with id ${id} not found`);
-    }
-    return game;
-  }
+  // async findOne(id: string): Promise<Game> {
+  //   if (!isValidObjectId(id)) {
+  //     throw new BadRequestException(`Invalid ID format: ${id}`);
+  //   }
+  //   const game = await this.gameModel.findById(id).exec();
+  //   if (!game) {
+  //     throw new NotFoundException(`Game with id ${id} not found`);
+  //   }
+  //   return game;
+  // }
 
-  async findOneByGameID(gameID: string): Promise<Game> {
-    const game = await this.gameModel.findOne({ gameID: gameID }).exec();
-    if (!game) {
-      throw new NotFoundException(`Game with gameID ${gameID} not found`);
-    }
-    return game;
-  }
+  // async findOneByGameID(gameID: string): Promise<Game> {
+  //   const game = await this.gameModel.findOne({ gameID: gameID }).exec();
+  //   if (!game) {
+  //     throw new NotFoundException(`Game with gameID ${gameID} not found`);
+  //   }
+  //   return game;
+  // }
 
   async findOneByGameSlug(gameSlug: string): Promise<Game> {
     const game = await this.gameModel
