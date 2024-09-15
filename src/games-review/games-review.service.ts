@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { GamesReviews, GamesReviewsDocument } from './schema/games-review.schema';
 import { Model } from 'mongoose';
@@ -49,5 +49,17 @@ export class GamesReviewService {
     if (existingReview) {
       throw new ConflictException('Review already exists');
     }
+  }
+
+  async getReviewsByGameSlug(gameSlug: string) {
+    const game = await this.gameService.findOneByGameSlug(gameSlug);
+    if (!game) {
+      throw new NotFoundException(`Game with slug ${gameSlug} not found`);
+    }
+    return {
+      averageRating: game.averageRating,
+      reviewsCount: game.reviewsCount,
+      reviews: game.reviews,
+    };
   }
 }

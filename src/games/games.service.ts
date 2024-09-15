@@ -35,11 +35,11 @@ export class GamesService {
       .populate({
         path: 'reviews',
         model: 'GamesReviews',
-        select: '_id rating comment gameID createdAt',
+        select: '_id rating comment createdAt',
         populate: {
           path: 'userID',
           model: 'User',
-          select: 'username _id',
+          select: 'username',
         },
       })
       .exec();
