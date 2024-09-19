@@ -59,8 +59,8 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('change-password')
   async changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
-    const id = req.user;
-    await this.authService.changePassword(id, changePasswordDto);
+    const user = req.user;
+    await this.authService.changePassword(user._id, user.email, changePasswordDto);
     return { message: 'Password changed successfully' };
   }
 

@@ -40,21 +40,17 @@ export class AuthService {
   }
 
   async login(loginUserDto: LoginUserDto) {
-    const { password, email, username, userInfo } = loginUserDto;
+    const { password, userInfo, usernameOrEmail } = loginUserDto;
     const { device, ipAddress, loginTime } = userInfo;
-    let user;
-    if (username) {
-      user = await this.userService.findByUsername(username);
-    } else if (email) {
-      user = await this.userService.findByEmail(email);
-    } else {
-      throw new UnauthorizedException('Username or email must be provided');
-    }
+    const user = await this.userService.findByUsernameOrEmail(usernameOrEmail);
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    await this.userService.updateUser(user?._id, { lastLogin: new Date() });
+    if (!user || !user._id) {
+      throw new NotFoundException('User with this username or email does not exist');
+    }
+    await this.userService.updateUser(user._id as string, { lastLogin: new Date() });
     const payload = { email: user.email, sub: user._id.toString() };
     const accessToken = await this.jwtService.signAsync(payload);
     const resetLink = `https://review-it.zoef.dev/change-password`;
@@ -69,11 +65,11 @@ export class AuthService {
     return { accessToken: accessToken, email: user.email, id: user._id.toString(), username: user.username };
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+  async changePassword(userId: string, email: string, changePasswordDto: ChangePasswordDto) {
     try {
       const { userInfo } = changePasswordDto;
       const { device, ipAddress, time } = userInfo;
-      const user = await this.userService.findById(userId);
+      const user = await this.userService.findByUsernameOrEmail(email);
       if (!user) throw new UnauthorizedException('Invalid credentials');
       const isPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
       if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');

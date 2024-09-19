@@ -45,6 +45,16 @@ export class UsersService {
     }
   }
 
+  async findByUsernameOrEmail(usernameOrEmail: string): Promise<UserDocument> {
+    const user = usernameOrEmail.includes('@')
+      ? await this.userModel.findOne({ email: usernameOrEmail }).select('_id username email password').exec()
+      : await this.userModel.findOne({ username: usernameOrEmail }).select('_id username email password').exec();
+    if (!user) {
+      throw new NotFoundException('User does not exist');
+    }
+    return user;
+  }
+
   async findByEmail(email: string): Promise<UserDocument> {
     const user = await this.userModel
       .findOne({ email })
