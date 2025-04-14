@@ -1,17 +1,6 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:6.0
-    container_name: mongodb
-    ports:
-      - '27019:27017'
-    volumes:
-      - mongo-data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-
   backend:
     build:
       context: .
@@ -19,14 +8,33 @@ services:
     container_name: nestjs-backend
     ports:
       - '3003:3003'
-    depends_on:
-      - mongodb
     environment:
-      MONGO_URI_DEV: mongodb://root:example@mongodb:27017/nest?authSource=admin
+      - MONGO_URI_DEV=${MONGO_URI_DEV}
     volumes:
       - .:/app
       - /app/node_modules
-    command: npm run start:dev
+      - /app/dist
+    depends_on:
+      - mongo
+    networks:
+      - review-network
+
+  mongo:
+    image: mongo:6
+    container_name: review-it-db
+    ports:
+      - '27017:27017'
+    volumes:
+      - /zoef/mongo-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    networks:
+      - review-network
 
 volumes:
-  mongo-data:
+  mongo_data:
+
+networks:
+  review-network:
